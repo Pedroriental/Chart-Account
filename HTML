@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .editable {
+            background-color: #f3f3f3;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Chart Account</h2>
+
+<button onclick="addColumn()">Añadir columna</button>
+<button onclick="removeColumn()">Eliminar columna</button>
+
+<table id="chartAccount">
+  <tr>
+    <th>Código de cuenta</th>
+    <th>Descripción de cuenta</th> 
+    <th>Nivel de cuenta</th>
+    <th>Detalles</th>
+    <th>Balance del usuario</th>
+  </tr>
+</table>
+
+<script>
+// Cargar los datos del almacenamiento local si existen
+var chartAccount = JSON.parse(localStorage.getItem('chartAccount')) || [
+    {"codigo": "001", "descripcion": "Cuenta 1", "nivel": "Nivel 1", "detalles": "Detalles 1", "balance": "1000"},
+    {"codigo": "002", "descripcion": "Cuenta 2", "nivel": "Nivel 2", "detalles": "Detalles 2", "balance": "2000"},
+    // Agrega más cuentas aquí
+];
+
+var table = document.getElementById("chartAccount");
+for (var i = 0; i < chartAccount.length; i++) {
+    var row = table.insertRow(-1);
+    for (var j in chartAccount[i]) {
+        var cell = row.insertCell(-1);
+        cell.innerHTML = chartAccount[i][j];
+        cell.classList.add("editable");
+        cell.contentEditable = "true";
+        cell.addEventListener('input', function(e) {
+            var rowIndex = e.target.parentElement.rowIndex - 1;
+            var colIndex = e.target.cellIndex;
+            var propName = Object.keys(chartAccount[0])[colIndex];
+            chartAccount[rowIndex][propName] = e.target.innerHTML;
+            localStorage.setItem('chartAccount', JSON.stringify(chartAccount));
+        });
+    }
+}
+
+function addColumn() {
+    var newPropName = prompt("Por favor, introduce el nombre de la nueva columna:");
+    if (newPropName) {
+        // Añadir la nueva columna a cada objeto en el array
+        for (var i = 0; i < chartAccount.length; i++) {
+            chartAccount[i][newPropName] = "";
+        }
+        // Añadir la nueva columna a la tabla
+        var headerRow = table.rows[0];
+        var newHeaderCell = headerRow.insertCell(-1);
+        newHeaderCell.innerHTML = newPropName;
+        for (var i = 1; i < table.rows.length; i++) {
+            var row = table.rows[i];
+            var newCell = row.insertCell(-1);
+            newCell.innerHTML = "";
+            newCell.classList.add("editable");
+            newCell.contentEditable = "true";
+            newCell.addEventListener('input', function(e) {
+                var rowIndex = e.target.parentElement.rowIndex - 1;
+                var colIndex = e.target.cellIndex;
+                var propName = Object.keys(chartAccount[0])[colIndex];
+                chartAccount[rowIndex][propName] = e.target.innerHTML;
+                localStorage.setItem('chartAccount', JSON.stringify(chartAccount));
+            });
+        }
+    }
+}
+
+function removeColumn() {
+    var propName = prompt("Por favor, introduce el nombre de la columna que quieres eliminar:");
+    if (propName) {
+        // Eliminar la columna de cada objeto en el array
+        for (var i = 0; i < chartAccount.length; i++) {
+            delete chartAccount[i][propName];
+        }
+        // Eliminar la columna de la tabla
+        var headerRow = table.rows[0];
+        var colIndex = Object.keys(chartAccount[0]).indexOf(propName);
+        if (colIndex > -1) {
+            for (var i = 0; i < table.rows.length; i++) {
+                table.rows[i].deleteCell(colIndex);
+            }
+        }
+        localStorage.setItem('chartAccount', JSON.stringify(chartAccount));
+    }
+}
+</script>
+
+</body>
+</html>
